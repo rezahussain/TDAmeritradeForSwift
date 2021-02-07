@@ -213,7 +213,7 @@ struct Order:Decodable,Encodable
 }
 
 
-class TDAmeritradeWrapper
+public class TDAmeritradeForSwift
 {
     
     class func obtainInitialAuthorizationCodeUsingLocalhostServer(tempLocalhostServerPort:UInt16,tdameritradeRedirectURI:String,tdameritradeConsumerKey:String,sslCertPath:String,sslKeyPath:String) throws -> (Optional<String>,String)

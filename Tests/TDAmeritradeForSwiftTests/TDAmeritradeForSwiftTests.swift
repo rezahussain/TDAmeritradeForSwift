@@ -6,7 +6,7 @@ final class TDAmeritradeForSwiftTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(TDAmeritradeForSwift().text, "Hello, World!")
+        //XCTAssertEqual(TDAmeritradeForSwift().text, "Hello, World!")
     }
 
     static var allTests = [
