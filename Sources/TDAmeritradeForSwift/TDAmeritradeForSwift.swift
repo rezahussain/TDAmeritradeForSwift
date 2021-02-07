@@ -34,7 +34,7 @@ extension CharacterSet {
     }()
 }
 
-struct Quote:Decodable
+public struct Quote:Decodable
 {
     let symbol:String
     let bidPrice:Float
@@ -109,7 +109,7 @@ struct Quote:Decodable
     
 }
 
-struct Instrument:Decodable,Encodable
+public struct Instrument:Decodable,Encodable
 {
     let assetType:String
     //let cusip:String
@@ -123,7 +123,7 @@ struct Instrument:Decodable,Encodable
      */
 }
 
-struct Position:Decodable
+public struct Position:Decodable
 {
     let shortQuantity:Int
     let averagePrice:Float
@@ -156,7 +156,7 @@ struct Position:Decodable
      */
 }
 
-struct Account:Decodable
+public struct Account:Decodable
 {
     let type:String
     let accountId:String
@@ -193,7 +193,7 @@ struct Account:Decodable
 }
 
 //https://developer.tdameritrade.com/content/place-order-samples
-struct OrderLeg:Decodable,Encodable
+public struct OrderLeg:Decodable,Encodable
 {
     let instruction:String//BUY,SELL,BUY_TO_COVER,SELL_SHORT
     let quantity:Int
@@ -202,7 +202,7 @@ struct OrderLeg:Decodable,Encodable
 }
 
 
-struct Order:Decodable,Encodable
+public struct Order:Decodable,Encodable
 {
     let orderType:String
     let session:String
@@ -216,7 +216,7 @@ struct Order:Decodable,Encodable
 public class TDAmeritradeForSwift
 {
     
-    class func obtainInitialAuthorizationCodeUsingLocalhostServer(tempLocalhostServerPort:UInt16,tdameritradeRedirectURI:String,tdameritradeConsumerKey:String,sslCertPath:String,sslKeyPath:String) throws -> (Optional<String>,String)
+    public class func obtainInitialAuthorizationCodeUsingLocalhostServer(tempLocalhostServerPort:UInt16,tdameritradeRedirectURI:String,tdameritradeConsumerKey:String,sslCertPath:String,sslKeyPath:String) throws -> (Optional<String>,String)
     {
         //this is the first part, of
         //https://developer.tdameritrade.com/content/simple-auth-local-apps
@@ -304,7 +304,7 @@ public class TDAmeritradeForSwift
 
 
 
-    class func grantRefreshTokenAndAccessTokenUsingAuthorizationCode(clientId:String,authCode:String,tdameritradeRedirectURI:String)->(Optional<String>,Optional<String>)
+    public class func grantRefreshTokenAndAccessTokenUsingAuthorizationCode(clientId:String,authCode:String,tdameritradeRedirectURI:String)->(Optional<String>,Optional<String>)
     {
         //https://developer.tdameritrade.com/authentication/apis/post/token-0
         //grant_type: authorization_code
@@ -382,7 +382,7 @@ public class TDAmeritradeForSwift
 
 
 
-    class func grantAccessTokenUsingRefreshToken(clientId:String,refreshToken:String,tdameritradeRedirectURI:String)->Optional<String>
+    public class func grantAccessTokenUsingRefreshToken(clientId:String,refreshToken:String,tdameritradeRedirectURI:String)->Optional<String>
     {
         //https://developer.tdameritrade.com/authentication/apis/post/token-0
         //grant_type: authorization_code
@@ -461,7 +461,7 @@ public class TDAmeritradeForSwift
 
 
 
-    class func getQuoteForSingleSymbol(symbol:String,accessTokenToUse:String)->Optional<Quote>
+    public class func getQuoteForSingleSymbol(symbol:String,accessTokenToUse:String)->Optional<Quote>
     {
         
 
@@ -527,7 +527,7 @@ public class TDAmeritradeForSwift
 
 
 
-    class func getAccount(tdAmeritradeAccountNumber:Int,accessTokenToUse:String)->Optional<Account>
+    public class func getAccount(tdAmeritradeAccountNumber:Int,accessTokenToUse:String)->Optional<Account>
     {
         
         
@@ -591,7 +591,7 @@ public class TDAmeritradeForSwift
 
 
 
-    class func tryToEnterLongPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
+    public class func tryToEnterLongPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
     {
         /*
          https://developer.tdameritrade.com/account-access/apis
@@ -755,7 +755,7 @@ public class TDAmeritradeForSwift
 
 
 
-    class func tryToExitLongPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
+    public class func tryToExitLongPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
     {
         
         //-----------------------------
@@ -881,7 +881,7 @@ public class TDAmeritradeForSwift
 
 
 
-    class func tryToEnterShortPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
+    public class func tryToEnterShortPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
     {
         
         //-----------------------------
@@ -1006,7 +1006,7 @@ public class TDAmeritradeForSwift
     }
 
 
-    class func tryToExitShortPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
+    public class func tryToExitShortPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
     {
         
         //-----------------------------
