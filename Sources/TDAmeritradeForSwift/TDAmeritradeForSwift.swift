@@ -49,22 +49,22 @@ extension CharacterSet {
 
 public struct Quote:Decodable,Encodable,Hashable
 {
-    let symbol:String
-    var bidPrice:Decimal
-    var askPrice:Decimal
-    let bidSize:UInt
-    let askSize:UInt
-    var lastPrice:Decimal
-    let lastSize:UInt
-    var openPrice:Decimal
-    var highPrice:Decimal
-    var lowPrice:Decimal
-    var closePrice:Decimal
-    let totalVolume:Float
-    let marginable:Bool
-    let shortable:Bool
-    let securityStatus:String
-    let delayed:Bool
+    public let symbol:String
+    public var bidPrice:Decimal
+    public var askPrice:Decimal
+    public let bidSize:UInt
+    public let askSize:UInt
+    public var lastPrice:Decimal
+    public let lastSize:UInt
+    public var openPrice:Decimal
+    public var highPrice:Decimal
+    public var lowPrice:Decimal
+    public var closePrice:Decimal
+    public let totalVolume:Float
+    public let marginable:Bool
+    public let shortable:Bool
+    public let securityStatus:String
+    public let delayed:Bool
     
     /*
      {
@@ -123,9 +123,9 @@ public struct Quote:Decodable,Encodable,Hashable
 
 public struct Instrument:Decodable,Encodable,Hashable
 {
-    let assetType:String
+    public let assetType:String
     //let cusip:String
-    let symbol:String
+    public let symbol:String
     /*
      "instrument": {
        "assetType": "EQUITY",
@@ -137,16 +137,16 @@ public struct Instrument:Decodable,Encodable,Hashable
 
 public struct Position:Decodable,Encodable,Hashable
 {
-    let shortQuantity:Int
-    let averagePrice:Float
-    let currentDayProfitLoss:Float
-    let currentDayProfitLossPercentage:Float
-    let longQuantity:Int
-    let settledLongQuantity:Int
-    let settledShortQuantity:Int//this can be negative so i just used Int for all of them to be consistent
-    let instrument:Instrument
-    let marketValue:Float
-    let maintenanceRequirement:Float
+    public let shortQuantity:Int
+    public let averagePrice:Float
+    public let currentDayProfitLoss:Float
+    public let currentDayProfitLossPercentage:Float
+    public let longQuantity:Int
+    public let settledLongQuantity:Int
+    public let settledShortQuantity:Int//this can be negative so i just used Int for all of them to be consistent
+    public let instrument:Instrument
+    public let marketValue:Float
+    public let maintenanceRequirement:Float
         
     /*
      {
@@ -170,12 +170,12 @@ public struct Position:Decodable,Encodable,Hashable
 
 public struct Account:Decodable,Encodable,Hashable
 {
-    let type:String
-    let accountId:String
-    let roundTrips:Int
-    let isDayTrader:Bool
-    let isClosingOnlyRestricted:Bool
-    let positions:[Position]
+    public let type:String
+    public let accountId:String
+    public let roundTrips:Int
+    public let isDayTrader:Bool
+    public let isClosingOnlyRestricted:Bool
+    public let positions:[Position]
     /*
      "securitiesAccount": {
          "type": "MARGIN",
@@ -207,27 +207,27 @@ public struct Account:Decodable,Encodable,Hashable
 //https://developer.tdameritrade.com/content/place-order-samples
 public struct OrderLeg:Decodable,Encodable,Hashable
 {
-    let instruction:String//BUY,SELL,BUY_TO_COVER,SELL_SHORT
-    let quantity:Int
-    let instrument:Instrument
-    let quantityType:Optional<String>
+    public let instruction:String//BUY,SELL,BUY_TO_COVER,SELL_SHORT
+    public let quantity:Int
+    public let instrument:Instrument
+    public let quantityType:Optional<String>
 }
 
 
 public struct Order:Decodable,Encodable,Hashable
 {
-    let orderType:String
-    let session:String
-    let duration:String
-    let orderStrategyType:String//dont know what this is
-    let orderLegCollection:[OrderLeg]
-    let price:Decimal
+    public let orderType:String
+    public let session:String
+    public let duration:String
+    public let orderStrategyType:String//dont know what this is
+    public let orderLegCollection:[OrderLeg]
+    public let price:Decimal
     
-    var filledQuantity:Optional<Int>
-    var remainingQuantity:Optional<Int>
-    var orderId:Optional<Int>
-    var status:Optional<String>
-    var cancelable:Optional<Bool>
+    public var filledQuantity:Optional<Int>
+    public var remainingQuantity:Optional<Int>
+    public var orderId:Optional<Int>
+    public var status:Optional<String>
+    public var cancelable:Optional<Bool>
     
     public mutating func refresh(tdAmeritradeAccountNumber:Int,accessTokenToUse:String)
     {
