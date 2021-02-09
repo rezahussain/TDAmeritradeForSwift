@@ -11,6 +11,19 @@ import PerfectHTTPServer
 import AppKit
 
 
+extension Date
+{
+    func yyyy_mm_ddString()->String
+    {
+        let inputDateFormatter = DateFormatter()
+        inputDateFormatter.dateFormat = "yyyy-MM-dd"
+        inputDateFormatter.timeZone = TimeZone.init(identifier: "EST")//why didnt they use GMT :\
+        inputDateFormatter.locale = Locale.init(identifier: "EST")
+        return inputDateFormatter.string(from: self)
+    }
+}
+
+
 //https://stackoverflow.com/questions/26364914/http-request-in-swift-with-post-method
 extension Dictionary {
     func percentEncoded() -> Data? {
@@ -34,19 +47,19 @@ extension CharacterSet {
     }()
 }
 
-public struct Quote:Decodable
+public struct Quote:Decodable,Encodable,Hashable
 {
     let symbol:String
-    let bidPrice:Float
-    let askPrice:Float
+    var bidPrice:Decimal
+    var askPrice:Decimal
     let bidSize:UInt
     let askSize:UInt
-    let lastPrice:Float
+    var lastPrice:Decimal
     let lastSize:UInt
-    let openPrice:Float
-    let highPrice:Float
-    let lowPrice:Float
-    let closePrice:Float
+    var openPrice:Decimal
+    var highPrice:Decimal
+    var lowPrice:Decimal
+    var closePrice:Decimal
     let totalVolume:Float
     let marginable:Bool
     let shortable:Bool
@@ -58,7 +71,6 @@ public struct Quote:Decodable
        "AAPL": {
          "assetType": "EQUITY",
          "assetMainType": "EQUITY",
-         "cusip": "037833100",
          "symbol": "AAPL",
          "description": "Apple Inc. - Common Stock",
          "bidPrice": 136.68,
@@ -109,7 +121,7 @@ public struct Quote:Decodable
     
 }
 
-public struct Instrument:Decodable,Encodable
+public struct Instrument:Decodable,Encodable,Hashable
 {
     let assetType:String
     //let cusip:String
@@ -123,7 +135,7 @@ public struct Instrument:Decodable,Encodable
      */
 }
 
-public struct Position:Decodable
+public struct Position:Decodable,Encodable,Hashable
 {
     let shortQuantity:Int
     let averagePrice:Float
@@ -156,7 +168,7 @@ public struct Position:Decodable
      */
 }
 
-public struct Account:Decodable
+public struct Account:Decodable,Encodable,Hashable
 {
     let type:String
     let accountId:String
@@ -193,16 +205,16 @@ public struct Account:Decodable
 }
 
 //https://developer.tdameritrade.com/content/place-order-samples
-public struct OrderLeg:Decodable,Encodable
+public struct OrderLeg:Decodable,Encodable,Hashable
 {
     let instruction:String//BUY,SELL,BUY_TO_COVER,SELL_SHORT
     let quantity:Int
     let instrument:Instrument
-    let quantityType:String
+    let quantityType:Optional<String>
 }
 
 
-public struct Order:Decodable,Encodable
+public struct Order:Decodable,Encodable,Hashable
 {
     let orderType:String
     let session:String
@@ -210,6 +222,108 @@ public struct Order:Decodable,Encodable
     let orderStrategyType:String//dont know what this is
     let orderLegCollection:[OrderLeg]
     let price:Decimal
+    
+    var filledQuantity:Optional<Int>
+    var remainingQuantity:Optional<Int>
+    var orderId:Optional<Int>
+    var status:Optional<String>
+    var cancelable:Optional<Bool>
+    
+    public mutating func refresh(tdAmeritradeAccountNumber:Int,accessTokenToUse:String)
+    {
+        //https://developer.tdameritrade.com/account-access/apis/get/accounts/%7BaccountId%7D/orders/%7BorderId%7D-0
+        
+        //https://www.advancedswift.com/http-requests-in-swift/
+        let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(tdAmeritradeAccountNumber)/orders/\(orderId!)")!
+        
+        var request = URLRequest(url:url)
+        
+        request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
+        request.httpMethod = "GET"
+        
+        var hasError:Optional<Error> = nil
+        
+        var refreshedOrder:Optional<Order> = nil
+        
+        //https://developer.apple.com/documentation/foundation/urlsessiondatatask
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { (data, response, error) in
+
+            if error != nil
+            {
+                hasError = error
+                print(error!.localizedDescription)
+            }
+            else if let data = data {
+                
+                //https://www.avanderlee.com/swift/json-parsing-decoding/
+                let someJson = String(data: data, encoding: .utf8)!
+                
+                print("ok here")
+                print(someJson)
+                //print(response!.description)
+                
+                
+                let jsonData = someJson.data(using: .utf8)!
+                let decoder = JSONDecoder()
+                //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
+                refreshedOrder = try! decoder.decode(Order.self, from: jsonData)
+
+            }
+            else
+            {
+                // Handle unexpected error
+            }
+        }
+        task.resume()
+        
+        while task.state != .completed && hasError == nil
+        {
+            sleep(1)
+        }
+        
+        self = refreshedOrder!
+    }
+    
+    public mutating func cancel(tdAmeritradeAccountNumber:Int,accessTokenToUse:String)
+    {
+        //https://developer.tdameritrade.com/account-access/apis/get/accounts/%7BaccountId%7D/orders/%7BorderId%7D-0
+        
+        //https://www.advancedswift.com/http-requests-in-swift/
+        let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(tdAmeritradeAccountNumber)/orders/\(orderId!)")!
+        
+        var request = URLRequest(url:url)
+        
+        request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
+        request.httpMethod = "DELETE"
+        
+        var hasError:Optional<Error> = nil
+        
+        //https://developer.apple.com/documentation/foundation/urlsessiondatatask
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { (data, response, error) in
+
+            if error != nil
+            {
+                hasError = error
+                print(error!.localizedDescription)
+            }
+            else if let data = data {
+                
+            }
+            else
+            {
+                // Handle unexpected error
+            }
+        }
+        task.resume()
+        
+        while task.state != .completed && hasError == nil
+        {
+            sleep(1)
+        }
+        
+    }
 }
 
 
@@ -501,6 +615,22 @@ public class TDAmeritradeForSwift
                 
                 let (key,value) = someQuotePackage.first!
                 someQuote = value
+                
+                //let properDouble =  Double(someQuote!.lastPrice.description)!
+                //let twoDecimalPlaces = String(format: "%.2f", properDouble)
+                //someQuote!.lastPrice = Decimal(string:twoDecimalPlaces)!
+                
+                //funny story, the json encoder only uses floats :\
+                someQuote!.bidPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.bidPrice.description)!))!
+                someQuote!.askPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.askPrice.description)!))!
+                someQuote!.lastPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lastPrice.description)!))!
+                someQuote!.openPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.openPrice.description)!))!
+                someQuote!.highPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.highPrice.description)!))!
+                someQuote!.lowPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lowPrice.description)!))!
+                someQuote!.closePrice = Decimal(string:String(format: "%.2f", Double(someQuote!.closePrice.description)!))!
+                
+                
+                //let abc:Optional<Double> =  nil
             }
             else
             {
@@ -513,16 +643,10 @@ public class TDAmeritradeForSwift
         {
             sleep(1)
         }
-
+         
         return someQuote
         
     }
-
-
-
-
-  
-
 
 
 
@@ -584,76 +708,135 @@ public class TDAmeritradeForSwift
         
     }
 
-
-
-
-
-
-
-
-    public class func tryToEnterLongPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
+    
+    public class func doBuyOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
     {
-        /*
-         https://developer.tdameritrade.com/account-access/apis
-         
-         So the tdameritrade api doesn't allow you to choose the orderid and
-         they dont provide an orderid after placing an order
-         like alpaca does or etrade
-         
-         So think of this scenario:
-         
-         BUY 1x AAPL
-         BUY 1x AAPL
-         
-         With their api, you can only
-            retrieve
-            -all orders by account
-            -all orders by a query
-         
-         so what am I gonna do, separately track that I have two AAPL orders
-         then query all of the orders I have made for today, then separately count them
-         and make sure the end number matches, then make more queries for each order status
-         to see where they ended up?
-         
-         it defeats the purpose if I have to code my own order tracking, and would have been so much simpler
-            if they provided an order id after placing an order or let me provide an order id when placing
-         
-         because then I can make one function that places the order, then loops and watches it's status like
-         I can for the other brokers.
-         
-         But its possible there is a good reason they have that I just dont know about
-            or there is something right in front of me that im oblivious to
-         
-         so im just doing Fill or kill, then checking whether the position size changed
-         in the account summary
-         
-         and will return a boolean on whether position size changed or not
-        */
+        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY")
+        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        
+        let boSet = Set<Order>(beforeOrders!)
+        let aoSet = Set<Order>(afterOrders!)
+        let diff = aoSet.subtracting(boSet)
+        
+        let newOrder = diff.first
+        return newOrder
+    }
+    
+    public class func doSellOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
+    {
+        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL")
+        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        
+        let boSet = Set<Order>(beforeOrders!)
+        let aoSet = Set<Order>(afterOrders!)
+        let diff = aoSet.subtracting(boSet)
+        
+        let newOrder = diff.first
+        return newOrder
+    }
+    
+    public class func doSellShortOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
+    {
+        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL_SHORT")
+        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        
+        let boSet = Set<Order>(beforeOrders!)
+        let aoSet = Set<Order>(afterOrders!)
+        let diff = aoSet.subtracting(boSet)
+        
+        let newOrder = diff.first
+        return newOrder
+    }
+    
+    public class func doBuyToCoverOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
+    {
+        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY_TO_COVER")
+        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        
+        let boSet = Set<Order>(beforeOrders!)
+        let aoSet = Set<Order>(afterOrders!)
+        let diff = aoSet.subtracting(boSet)
+        
+        let newOrder = diff.first
+        return newOrder
+    }
+    
 
+    public class func getOrdersFromDate(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,fromDate:Date)->Optional<[Order]>
+    {
         
-        //-----------------------------
-        // 1 get account before
-        // 2 get account after 3 seconds
-        // 3 compare for diff
+        let fromEnteredTime = fromDate.yyyy_mm_ddString()
+        let toEnteredTime = fromDate.yyyy_mm_ddString()
         
-        let accountBefore = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
+        var orderArray:Optional<[Order]> = nil
         
-        var startingPosition:Optional<Position> = nil
-        for position in accountBefore!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
+        //https://www.advancedswift.com/http-requests-in-swift/
+        let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(tdAmeritradeAccountNumber)/orders?fromEnteredTime=\(fromEnteredTime)&toEnteredTime=\(toEnteredTime)")!
+        
+    
+        print(url)
+        var request = URLRequest(url:url)
+        
+        request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
+        request.httpMethod = "GET"
+        
+        var hasError:Optional<Error> = nil
+        
+        //https://developer.apple.com/documentation/foundation/urlsessiondatatask
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { (data, response, error) in
+
+            if error != nil
             {
-                startingPosition = position
+                hasError = error
+                print(error!.localizedDescription)
+            }
+            else if let data = data {
+                
+                //https://www.avanderlee.com/swift/json-parsing-decoding/
+                let someJson = String(data: data, encoding: .utf8)!
+                
+                //print("ok here")
+                //print(someJson)
+                //print(response!.description)
+                
+                
+                let jsonData = someJson.data(using: .utf8)!
+                let decoder = JSONDecoder()
+                //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
+                orderArray = try! decoder.decode([Order].self, from: jsonData)
+                
+            }
+            else
+            {
+                // Handle unexpected error
             }
         }
-        //-----------------------------
+        task.resume()
         
+        while task.state != .completed && hasError == nil
+        {
+            sleep(1)
+        }
+
+        return orderArray
+    }
+
+    
+
+    
+    
+    public class func placeGenericOrder(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal,instruction:String)
+    {
         
-        //https://developer.tdameritrade.com/account-access/apis/post/accounts/%7BaccountId%7D/orders-0
         let anInstrument = Instrument(assetType: "EQUITY", symbol: symbol)
-        let anOrderLeg = OrderLeg(instruction: "BUY", quantity: quantity, instrument: anInstrument, quantityType: "SHARES")
+        let anOrderLeg = OrderLeg(instruction: instruction, quantity: quantity, instrument: anInstrument, quantityType: "SHARES")
         let orderLegs = [anOrderLeg]
-        let newOrder = Order(orderType: "LIMIT", session: "NORMAL", duration: "FILL_OR_KILL", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice)
+        let newOrder = Order(orderType: "LIMIT", session: "NORMAL", duration: "DAY", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice,filledQuantity: nil,remainingQuantity: nil,orderId: nil,status:nil,cancelable: nil)
         
         //https://www.advancedswift.com/http-requests-in-swift/
         let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(accountNumber)/orders")!
@@ -686,19 +869,6 @@ public class TDAmeritradeForSwift
             }
             else if let data = data {
                 
-                /*
-                //https://www.avanderlee.com/swift/json-parsing-decoding/
-                struct someResponse: Decodable
-                {
-                    let access_token:String
-                }
-                */
-                let someJson = String(data: data, encoding: .utf8)!
-                print(someJson)
-                //let jsonData = someJson.data(using: .utf8)!
-                //let decoder = JSONDecoder()
-                //let aResponse = try! decoder.decode(someResponse.self, from: jsonData)
-                //accessToken = aResponse.access_token
                 
             }
             else
@@ -712,438 +882,7 @@ public class TDAmeritradeForSwift
         {
             sleep(1)
         }
-        
-        
-        //-----------------------------
-        
-        sleep(3)
-        
-        let accountAfter = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
-        var endingPosition:Optional<Position> = nil
-        for position in accountAfter!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
-            {
-                endingPosition = position
-            }
-        }
-        
-        //-----------------------------
-        
-        
-        var didItFill:Bool = false
-        
-        if endingPosition != nil && startingPosition == nil
-        {
-            didItFill = true
-        }
-        
-        if endingPosition != nil && startingPosition != nil
-        {
-            if endingPosition!.longQuantity > startingPosition!.longQuantity
-            {
-                didItFill = true
-            }
-        }
-        
-        //-----------------------------
-        
-        return didItFill
     }
-
-
-
-
-
-    public class func tryToExitLongPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
-    {
-        
-        //-----------------------------
-        // 1 get account before
-        // 2 get account after 3 seconds
-        // 3 compare for diff
-        
-        let accountBefore = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
-        
-        var startingPosition:Optional<Position> = nil
-        for position in accountBefore!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
-            {
-                startingPosition = position
-            }
-        }
-        //-----------------------------
-        
-        
-        //https://developer.tdameritrade.com/account-access/apis/post/accounts/%7BaccountId%7D/orders-0
-        let anInstrument = Instrument(assetType: "EQUITY", symbol: symbol)
-        let anOrderLeg = OrderLeg(instruction: "SELL", quantity: quantity, instrument: anInstrument, quantityType: "SHARES")
-        let orderLegs = [anOrderLeg]
-        let newOrder = Order(orderType: "LIMIT", session: "NORMAL", duration: "FILL_OR_KILL", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice)
-        
-        //https://www.advancedswift.com/http-requests-in-swift/
-        let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(accountNumber)/orders")!
-        var request = URLRequest(url:url)
-        
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        
-        request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
-        
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let jsonData = try! encoder.encode(newOrder)
-        print(String(data: jsonData, encoding: .utf8)!)
-        request.httpBody = jsonData
-        
-        
-        var hasError:Optional<Error> = nil
-        //https://developer.apple.com/documentation/foundation/urlsessiondatatask
-
-        let session = URLSession.shared
-
-        let task = session.dataTask(with: request) { (data, response, error) in
-
-            if error != nil
-            {
-     
-                print(error!.localizedDescription)
-                hasError = error!
-            }
-            else if let data = data {
-                
-                /*
-                //https://www.avanderlee.com/swift/json-parsing-decoding/
-                struct someResponse: Decodable
-                {
-                    let access_token:String
-                }
-                */
-                let someJson = String(data: data, encoding: .utf8)!
-                print(someJson)
-                //let jsonData = someJson.data(using: .utf8)!
-                //let decoder = JSONDecoder()
-                //let aResponse = try! decoder.decode(someResponse.self, from: jsonData)
-                //accessToken = aResponse.access_token
-                
-            }
-            else
-            {
-                // Handle unexpected error
-            }
-        }
-        task.resume()
-        
-        while task.state != .completed && hasError == nil
-        {
-            sleep(1)
-        }
-        
-        
-        //-----------------------------
-        
-        sleep(3)
-        
-        let accountAfter = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
-        var endingPosition:Optional<Position> = nil
-        for position in accountAfter!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
-            {
-                endingPosition = position
-            }
-        }
-        
-        //-----------------------------
-        
-
-        
-        var didItFill:Bool = false
-        
-        if endingPosition == nil && startingPosition != nil
-        {
-            didItFill = true
-        }
-        
-        if endingPosition != nil && startingPosition != nil
-        {
-            if endingPosition!.longQuantity < startingPosition!.longQuantity
-            {
-                didItFill = true
-            }
-        }
-        
-        //-----------------------------
-        
-        return didItFill
-    }
-
-
-
-    public class func tryToEnterShortPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
-    {
-        
-        //-----------------------------
-        // 1 get account before
-        // 2 get account after 3 seconds
-        // 3 compare for diff
-        
-        let accountBefore = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
-        
-        var startingPosition:Optional<Position> = nil
-        for position in accountBefore!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
-            {
-                startingPosition = position
-            }
-        }
-        //-----------------------------
-        
-        
-        //https://developer.tdameritrade.com/account-access/apis/post/accounts/%7BaccountId%7D/orders-0
-        let anInstrument = Instrument(assetType: "EQUITY", symbol: symbol)
-        let anOrderLeg = OrderLeg(instruction: "SELL_SHORT", quantity: quantity, instrument: anInstrument, quantityType: "SHARES")
-        let orderLegs = [anOrderLeg]
-        let newOrder = Order(orderType: "LIMIT", session: "NORMAL", duration: "FILL_OR_KILL", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice)
-        
-        //https://www.advancedswift.com/http-requests-in-swift/
-        let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(accountNumber)/orders")!
-        var request = URLRequest(url:url)
-        
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        
-        request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
-        
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let jsonData = try! encoder.encode(newOrder)
-        print(String(data: jsonData, encoding: .utf8)!)
-        request.httpBody = jsonData
-        
-        
-        var hasError:Optional<Error> = nil
-        //https://developer.apple.com/documentation/foundation/urlsessiondatatask
-
-        let session = URLSession.shared
-
-        let task = session.dataTask(with: request) { (data, response, error) in
-
-            if error != nil
-            {
-     
-                print(error!.localizedDescription)
-                hasError = error!
-            }
-            else if let data = data {
-                
-                /*
-                //https://www.avanderlee.com/swift/json-parsing-decoding/
-                struct someResponse: Decodable
-                {
-                    let access_token:String
-                }
-                */
-                let someJson = String(data: data, encoding: .utf8)!
-                print(someJson)
-                //let jsonData = someJson.data(using: .utf8)!
-                //let decoder = JSONDecoder()
-                //let aResponse = try! decoder.decode(someResponse.self, from: jsonData)
-                //accessToken = aResponse.access_token
-                
-            }
-            else
-            {
-                // Handle unexpected error
-            }
-        }
-        task.resume()
-        
-        while task.state != .completed && hasError == nil
-        {
-            sleep(1)
-        }
-        
-        
-        //-----------------------------
-        
-        sleep(3)
-        
-        let accountAfter = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
-        var endingPosition:Optional<Position> = nil
-        for position in accountAfter!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
-            {
-                endingPosition = position
-            }
-        }
-        
-        //-----------------------------
-        
-      
-        var didItFill:Bool = false
-        
-        if endingPosition != nil && startingPosition == nil
-        {
-            didItFill = true
-        }
-        
-        if endingPosition != nil && startingPosition != nil
-        {
-            //short positions have negative quantities
-            if endingPosition!.shortQuantity < startingPosition!.shortQuantity
-            {
-                didItFill = true
-            }
-        }
-        
-        //-----------------------------
-        
-        return didItFill
-    }
-
-
-    public class func tryToExitShortPosition(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Bool
-    {
-        
-        //-----------------------------
-        // 1 get account before
-        // 2 get account after 3 seconds
-        // 3 compare for diff
-        
-        let accountBefore = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
-        
-        var startingPosition:Optional<Position> = nil
-        for position in accountBefore!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
-            {
-                startingPosition = position
-            }
-        }
-        //-----------------------------
-        
-        
-        //https://developer.tdameritrade.com/account-access/apis/post/accounts/%7BaccountId%7D/orders-0
-        let anInstrument = Instrument(assetType: "EQUITY", symbol: symbol)
-        let anOrderLeg = OrderLeg(instruction: "BUY_TO_COVER", quantity: quantity, instrument: anInstrument, quantityType: "SHARES")
-        let orderLegs = [anOrderLeg]
-        let newOrder = Order(orderType: "LIMIT", session: "NORMAL", duration: "FILL_OR_KILL", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice)
-        
-        //https://www.advancedswift.com/http-requests-in-swift/
-        let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(accountNumber)/orders")!
-        var request = URLRequest(url:url)
-        
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        
-        request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
-        
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let jsonData = try! encoder.encode(newOrder)
-        print(String(data: jsonData, encoding: .utf8)!)
-        request.httpBody = jsonData
-        
-        
-        var hasError:Optional<Error> = nil
-        //https://developer.apple.com/documentation/foundation/urlsessiondatatask
-
-        let session = URLSession.shared
-
-        let task = session.dataTask(with: request) { (data, response, error) in
-
-            if error != nil
-            {
-     
-                print(error!.localizedDescription)
-                hasError = error!
-            }
-            else if let data = data {
-                
-                /*
-                //https://www.avanderlee.com/swift/json-parsing-decoding/
-                struct someResponse: Decodable
-                {
-                    let access_token:String
-                }
-                */
-                let someJson = String(data: data, encoding: .utf8)!
-                print(someJson)
-                //let jsonData = someJson.data(using: .utf8)!
-                //let decoder = JSONDecoder()
-                //let aResponse = try! decoder.decode(someResponse.self, from: jsonData)
-                //accessToken = aResponse.access_token
-                
-            }
-            else
-            {
-                // Handle unexpected error
-            }
-        }
-        task.resume()
-        
-        while task.state != .completed && hasError == nil
-        {
-            sleep(1)
-        }
-        
-        
-        //-----------------------------
-        
-        sleep(3)
-        
-        let accountAfter = getAccount(tdAmeritradeAccountNumber:accountNumber,accessTokenToUse:accessTokenToUse)
-        var endingPosition:Optional<Position> = nil
-        for position in accountAfter!.positions
-        {
-            if position.instrument.symbol.compare(symbol) == .orderedSame
-            {
-                endingPosition = position
-            }
-        }
-        
-        //-----------------------------
-        
-        
-        var didItFill:Bool = false
-        
-        if endingPosition == nil && startingPosition != nil
-        {
-            didItFill = true
-        }
-        
-        if endingPosition != nil && startingPosition != nil
-        {
-            //short positions have negative quantities
-            if endingPosition!.shortQuantity > startingPosition!.shortQuantity
-            {
-                didItFill = true
-            }
-        }
-        
-        //-----------------------------
-        
-        return didItFill
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     
 }
 
