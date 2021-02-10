@@ -267,9 +267,6 @@ public struct Order:Decodable,Encodable,Hashable
                 //https://www.avanderlee.com/swift/json-parsing-decoding/
                 let someJson = String(data: data, encoding: .utf8)!
                 
-                print("ok here")
-                print(someJson)
-                //print(response!.description)
                 
                 
                 let jsonData = someJson.data(using: .utf8)!
@@ -688,7 +685,7 @@ public class TDAmeritradeForSwift
                 //https://www.avanderlee.com/swift/json-parsing-decoding/
                 let someJson = String(data: data, encoding: .utf8)!
                 
-                print(someJson)
+                
                 //print(response!.description)
                 
                 let jsonData = someJson.data(using: .utf8)!
@@ -829,7 +826,7 @@ public class TDAmeritradeForSwift
         let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(tdAmeritradeAccountNumber)/orders?fromEnteredTime=\(fromEnteredTime)&toEnteredTime=\(toEnteredTime)")!
         
     
-        print(url)
+        //print(url)
         var request = URLRequest(url:url)
         
         request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
@@ -901,7 +898,7 @@ public class TDAmeritradeForSwift
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         let jsonData = try! encoder.encode(newOrder)
-        print(String(data: jsonData, encoding: .utf8)!)
+        //print(String(data: jsonData, encoding: .utf8)!)
         request.httpBody = jsonData
         
         
