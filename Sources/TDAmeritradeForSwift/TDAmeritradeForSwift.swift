@@ -213,6 +213,14 @@ public struct OrderLeg:Decodable,Encodable,Hashable
     public let quantityType:Optional<String>
 }
 
+public enum orderTypeEnum
+{
+    case buy
+    case sell
+    case sellShort
+    case buyToCover
+}
+
 
 public struct Order:Decodable,Encodable,Hashable
 {
@@ -705,7 +713,6 @@ public class TDAmeritradeForSwift
 
         return someAccount
         
-        
     }
     
     public class func getPositionForSymbol(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,chosenSymbol:String)->Optional<Position>
@@ -725,63 +732,89 @@ public class TDAmeritradeForSwift
         return maybePosition
         
     }
+    
+    public class func doOrderFillOrKillImitation(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal,timeLimitSecondsForFill:UInt,orderType:orderTypeEnum)->Optional<Order>
+    {
+        
+        var someOrder:Optional<Order> = doOrder(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,quantity:quantity,symbol:symbol,limitPrice:limitPrice,orderType:orderType)
+        
+        let startDate = Date()
+        
+        var didFill:Bool = false
+        
+        while Date().timeIntervalSince(startDate) < Double(timeLimitSecondsForFill)
+        {
+            someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+            if someOrder!.status!.compare("FILLED") == .orderedSame
+            {
+                didFill = true
+                break
+            }
+            if someOrder!.status!.compare("REJECTED") == .orderedSame
+            {
+                didFill = false
+                break
+            }
+            sleep(1)
+        }
+        
+        if didFill
+        {
+            return someOrder
+        }
+        else
+        {
+            if someOrder!.cancelable! == true
+            {
+                someOrder!.cancel(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                //someOrder!.refresh(tdAmeritradeAccountNumber: accountNumber, accessTokenToUse: accessToken2!)
+                
+                var tries:Int = 0
+                while someOrder!.status!.compare("CANCELED") != .orderedSame
+                {
+                    someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                    sleep(1)
+                    tries = tries + 1
+                    if tries > 5
+                    {
+                        break
+                    }
+                }
+            }
+            return someOrder
+        }
+        
+    }
+    
+    
+    
+    public class func doOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal,orderType:orderTypeEnum)->Optional<Order>
+    {
+        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        switch orderType
+        {
+            case .buy:
+                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY")
+            case .sell:
+                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL")
+            case .sellShort:
+                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL_SHORT")
+            case .buyToCover:
+                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY_TO_COVER")
+        }
+        
+        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        
+        let boSet = Set<Order>(beforeOrders!)
+        let aoSet = Set<Order>(afterOrders!)
+        let diff = aoSet.subtracting(boSet)
+        
+        let newOrder = diff.first
+        return newOrder
+    }
+    
 
     
-    public class func doBuyOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
-    {
-        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY")
-        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        
-        let boSet = Set<Order>(beforeOrders!)
-        let aoSet = Set<Order>(afterOrders!)
-        let diff = aoSet.subtracting(boSet)
-        
-        let newOrder = diff.first
-        return newOrder
-    }
-    
-    public class func doSellOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
-    {
-        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL")
-        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        
-        let boSet = Set<Order>(beforeOrders!)
-        let aoSet = Set<Order>(afterOrders!)
-        let diff = aoSet.subtracting(boSet)
-        
-        let newOrder = diff.first
-        return newOrder
-    }
-    
-    public class func doSellShortOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
-    {
-        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL_SHORT")
-        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        
-        let boSet = Set<Order>(beforeOrders!)
-        let aoSet = Set<Order>(afterOrders!)
-        let diff = aoSet.subtracting(boSet)
-        
-        let newOrder = diff.first
-        return newOrder
-    }
-    
-    public class func doBuyToCoverOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
-    {
-        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY_TO_COVER")
-        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
-        
-        let boSet = Set<Order>(beforeOrders!)
-        let aoSet = Set<Order>(afterOrders!)
-        let diff = aoSet.subtracting(boSet)
-        
-        let newOrder = diff.first
-        return newOrder
-    }
     
 
     public class func getOrdersFromDate(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,fromDate:Date)->Optional<[Order]>
