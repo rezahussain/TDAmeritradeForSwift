@@ -707,6 +707,24 @@ public class TDAmeritradeForSwift
         
         
     }
+    
+    public class func getPositionForSymbol(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,chosenSymbol:String)->Optional<Position>
+    {
+        
+        let someAccount = TDAmeritradeForSwift.getAccount(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse)
+        
+        var maybePosition:Optional<Position> = nil
+        for somePosition in someAccount!.positions
+        {
+            if somePosition.instrument.symbol.compare(chosenSymbol) == .orderedSame
+            {
+                maybePosition = somePosition
+            }
+        }
+        
+        return maybePosition
+        
+    }
 
     
     public class func doBuyOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal)->Optional<Order>
