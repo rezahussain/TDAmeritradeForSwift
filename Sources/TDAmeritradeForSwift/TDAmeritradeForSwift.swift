@@ -735,51 +735,55 @@ public class TDAmeritradeForSwift
         
         var someOrder:Optional<Order> = doOrder(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,quantity:quantity,symbol:symbol,limitPrice:limitPrice,orderType:orderType)
         
-        let startDate = Date()
-        
-        var didFill:Bool = false
-        
-        while Date().timeIntervalSince(startDate) < Double(timeLimitSecondsForFill)
+        if someOrder != nil
         {
-            someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
-            if someOrder!.status!.compare("FILLED") == .orderedSame
+            let startDate = Date()
+            
+            var didFill:Bool = false
+            
+            while Date().timeIntervalSince(startDate) < Double(timeLimitSecondsForFill)
             {
-                didFill = true
-                break
-            }
-            if someOrder!.status!.compare("REJECTED") == .orderedSame
-            {
-                didFill = false
-                break
-            }
-            sleep(1)
-        }
-        
-        if didFill
-        {
-            return someOrder
-        }
-        else
-        {
-            if someOrder!.cancelable! == true
-            {
-                someOrder!.cancel(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
-                //someOrder!.refresh(tdAmeritradeAccountNumber: accountNumber, accessTokenToUse: accessToken2!)
-                
-                var tries:Int = 0
-                while someOrder!.status!.compare("CANCELED") != .orderedSame
+                someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                if someOrder!.status!.compare("FILLED") == .orderedSame
                 {
-                    someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
-                    sleep(1)
-                    tries = tries + 1
-                    if tries > 5
+                    didFill = true
+                    break
+                }
+                if someOrder!.status!.compare("REJECTED") == .orderedSame
+                {
+                    didFill = false
+                    break
+                }
+                sleep(1)
+            }
+            
+            if didFill
+            {
+                
+            }
+            else
+            {
+                if someOrder!.cancelable! == true
+                {
+                    someOrder!.cancel(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                    //someOrder!.refresh(tdAmeritradeAccountNumber: accountNumber, accessTokenToUse: accessToken2!)
+                    
+                    var tries:Int = 0
+                    while someOrder!.status!.compare("CANCELED") != .orderedSame
                     {
-                        break
+                        someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                        sleep(1)
+                        tries = tries + 1
+                        if tries > 5
+                        {
+                            break
+                        }
                     }
                 }
+                
             }
-            return someOrder
         }
+        return someOrder
         
     }
     
@@ -802,12 +806,19 @@ public class TDAmeritradeForSwift
         
         let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
         
+        if beforeOrders != nil && afterOrders != nil
+        {
         let boSet = Set<Order>(beforeOrders!)
         let aoSet = Set<Order>(afterOrders!)
         let diff = aoSet.subtracting(boSet)
         
         let newOrder = diff.first
         return newOrder
+        }
+        else
+        {
+            return nil
+        }
     }
     
 
