@@ -822,7 +822,82 @@ public class TDAmeritradeForSwift
     }
     
 
+    public class func getOpenOrdersForSingleSymbol(symbol:String,accessTokenToUse:String,tdAmeritradeAccountNumber:Int,fromDate:Date)->Optional<[Order]>
+    {
+        
+        let fromEnteredTime = fromDate.yyyy_mm_ddString()
+        let toEnteredTime = fromDate.yyyy_mm_ddString()
+        
+        var orderArray:Optional<[Order]> = nil
+        
+        //https://www.advancedswift.com/http-requests-in-swift/
+        let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(tdAmeritradeAccountNumber)/orders?fromEnteredTime=\(fromEnteredTime)&toEnteredTime=\(toEnteredTime)&status=WORKING")!
+        
     
+        print(url)
+        var request = URLRequest(url:url)
+        
+        request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
+        request.httpMethod = "GET"
+        
+        var hasError:Optional<Error> = nil
+        
+        //https://developer.apple.com/documentation/foundation/urlsessiondatatask
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { (data, response, error) in
+
+            if error != nil
+            {
+                hasError = error
+                print(error!.localizedDescription)
+            }
+            else if let data = data {
+                
+                //https://www.avanderlee.com/swift/json-parsing-decoding/
+                let someJson = String(data: data, encoding: .utf8)!
+                
+                //print("ok here")
+                //print(someJson)
+                //print(response!.description)
+                
+                
+                let jsonData = someJson.data(using: .utf8)!
+                let decoder = JSONDecoder()
+                //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
+                orderArray = try! decoder.decode([Order].self, from: jsonData)
+                
+            }
+            else
+            {
+                // Handle unexpected error
+            }
+        }
+        task.resume()
+        
+        while task.state != .completed && hasError == nil
+        {
+            sleep(1)
+        }
+        
+        var orderArray2:Optional<[Order]> = nil
+        
+        if orderArray != nil
+        {
+            orderArray2 = orderArray?.compactMap( {(someOrder) -> Optional<Order> in
+                if someOrder.orderLegCollection.first!.instrument.symbol.compare(symbol) == .orderedSame
+                {
+                    return someOrder
+                }
+                else
+                {
+                    return nil
+                }
+            })
+        }
+
+        return orderArray2
+        
+    }
     
 
     public class func getOrdersFromDate(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,fromDate:Date)->Optional<[Order]>
