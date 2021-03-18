@@ -332,6 +332,7 @@ public struct Order:Decodable,Encodable,Hashable
 }
 
 
+
 public class TDAmeritradeForSwift
 {
     
@@ -618,28 +619,24 @@ public class TDAmeritradeForSwift
                 //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
                 let someQuotePackage = try! decoder.decode([String:Quote].self, from: jsonData)
                 
-                let (key,value) = someQuotePackage.first!
-                someQuote = value
-                
-                //let properDouble =  Double(someQuote!.lastPrice.description)!
-                //let twoDecimalPlaces = String(format: "%.2f", properDouble)
-                //someQuote!.lastPrice = Decimal(string:twoDecimalPlaces)!
-                
-                //funny story, the json encoder only uses floats :\
-                someQuote!.bidPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.bidPrice.description)!))!
-                someQuote!.askPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.askPrice.description)!))!
-                someQuote!.lastPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lastPrice.description)!))!
-                someQuote!.openPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.openPrice.description)!))!
-                someQuote!.highPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.highPrice.description)!))!
-                someQuote!.lowPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lowPrice.description)!))!
-                someQuote!.closePrice = Decimal(string:String(format: "%.2f", Double(someQuote!.closePrice.description)!))!
-                
-                
-                //let abc:Optional<Double> =  nil
-            }
-            else
-            {
-                // Handle unexpected error
+                if someQuotePackage.first != nil
+                {
+                    let (key,value) = someQuotePackage.first!
+                    someQuote = value
+                    
+                    //let properDouble =  Double(someQuote!.lastPrice.description)!
+                    //let twoDecimalPlaces = String(format: "%.2f", properDouble)
+                    //someQuote!.lastPrice = Decimal(string:twoDecimalPlaces)!
+                    
+                    //funny story, the json encoder only uses floats :\
+                    someQuote!.bidPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.bidPrice.description)!))!
+                    someQuote!.askPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.askPrice.description)!))!
+                    someQuote!.lastPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lastPrice.description)!))!
+                    someQuote!.openPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.openPrice.description)!))!
+                    someQuote!.highPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.highPrice.description)!))!
+                    someQuote!.lowPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lowPrice.description)!))!
+                    someQuote!.closePrice = Decimal(string:String(format: "%.2f", Double(someQuote!.closePrice.description)!))!
+                }
             }
         }
         task.resume()
