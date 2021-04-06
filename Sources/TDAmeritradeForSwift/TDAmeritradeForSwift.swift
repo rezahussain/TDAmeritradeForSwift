@@ -272,8 +272,14 @@ public struct Order:Decodable,Encodable,Hashable
                 let jsonData = someJson.data(using: .utf8)!
                 let decoder = JSONDecoder()
                 //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
-                refreshedOrder = try! decoder.decode(Order.self, from: jsonData)
-
+                do
+                {
+                    refreshedOrder = try decoder.decode(Order.self, from: jsonData)
+                }
+                catch
+                {
+                    
+                }
             }
             else
             {
@@ -479,10 +485,16 @@ public class TDAmeritradeForSwift
                 
                 let jsonData = someJson.data(using: .utf8)!
                 let decoder = JSONDecoder()
-                let aResponse = try! decoder.decode(someResponse.self, from: jsonData)
-                refreshToken = aResponse.refresh_token
-                accessToken = aResponse.access_token
+                do
+                {
+                    let aResponse = try decoder.decode(someResponse.self, from: jsonData)
+                    refreshToken = aResponse.refresh_token
+                    accessToken = aResponse.access_token
+                }
+                catch
+                {
                 
+                }
             }
             else
             {
@@ -556,9 +568,15 @@ public class TDAmeritradeForSwift
                 
                 let jsonData = someJson.data(using: .utf8)!
                 let decoder = JSONDecoder()
-                let aResponse = try! decoder.decode(someResponse.self, from: jsonData)
-                accessToken = aResponse.access_token
-                
+                do
+                {
+                    let aResponse = try decoder.decode(someResponse.self, from: jsonData)
+                    accessToken = aResponse.access_token
+                }
+                catch
+                {
+                    
+                }
             }
             else
             {
@@ -616,27 +634,41 @@ public class TDAmeritradeForSwift
                 
                 let jsonData = someJson.data(using: .utf8)!
                 let decoder = JSONDecoder()
-                //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
-                let someQuotePackage = try! decoder.decode([String:Quote].self, from: jsonData)
                 
-                if someQuotePackage.first != nil
+                var someQuotePackage:Optional<[String:Quote]>  =  nil
+                do
                 {
-                    let (key,value) = someQuotePackage.first!
-                    someQuote = value
-                    
-                    //let properDouble =  Double(someQuote!.lastPrice.description)!
-                    //let twoDecimalPlaces = String(format: "%.2f", properDouble)
-                    //someQuote!.lastPrice = Decimal(string:twoDecimalPlaces)!
-                    
-                    //funny story, the json encoder only uses floats :\
-                    someQuote!.bidPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.bidPrice.description)!))!
-                    someQuote!.askPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.askPrice.description)!))!
-                    someQuote!.lastPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lastPrice.description)!))!
-                    someQuote!.openPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.openPrice.description)!))!
-                    someQuote!.highPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.highPrice.description)!))!
-                    someQuote!.lowPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lowPrice.description)!))!
-                    someQuote!.closePrice = Decimal(string:String(format: "%.2f", Double(someQuote!.closePrice.description)!))!
+                    //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
+                    someQuotePackage = try decoder.decode([String:Quote].self, from: jsonData)
                 }
+                catch
+                {
+                    
+                }
+                
+                if someQuotePackage != nil
+                {
+                    if someQuotePackage!.first != nil
+                    {
+                        let (key,value) = someQuotePackage!.first!
+                        someQuote = value
+                        
+                        //let properDouble =  Double(someQuote!.lastPrice.description)!
+                        //let twoDecimalPlaces = String(format: "%.2f", properDouble)
+                        //someQuote!.lastPrice = Decimal(string:twoDecimalPlaces)!
+                        
+                        //funny story, the json encoder only uses floats :\
+                        someQuote!.bidPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.bidPrice.description)!))!
+                        someQuote!.askPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.askPrice.description)!))!
+                        someQuote!.lastPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lastPrice.description)!))!
+                        someQuote!.openPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.openPrice.description)!))!
+                        someQuote!.highPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.highPrice.description)!))!
+                        someQuote!.lowPrice = Decimal(string:String(format: "%.2f", Double(someQuote!.lowPrice.description)!))!
+                        someQuote!.closePrice = Decimal(string:String(format: "%.2f", Double(someQuote!.closePrice.description)!))!
+                    }
+                }
+                
+                
             }
         }
         task.resume()
@@ -868,8 +900,14 @@ public class TDAmeritradeForSwift
                 let jsonData = someJson.data(using: .utf8)!
                 let decoder = JSONDecoder()
                 //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
-                orderArray = try! decoder.decode([Order].self, from: jsonData)
-                
+                do
+                {
+                    orderArray = try decoder.decode([Order].self, from: jsonData)
+                }
+                catch
+                {
+                    
+                }
             }
             else
             {
@@ -946,8 +984,14 @@ public class TDAmeritradeForSwift
                 let jsonData = someJson.data(using: .utf8)!
                 let decoder = JSONDecoder()
                 //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
-                orderArray = try! decoder.decode([Order].self, from: jsonData)
-                
+                do
+                {
+                    orderArray = try decoder.decode([Order].self, from: jsonData)
+                }
+                catch
+                {
+                    
+                }
             }
             else
             {
