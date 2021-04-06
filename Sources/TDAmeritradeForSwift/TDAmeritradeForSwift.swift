@@ -688,10 +688,17 @@ public class TDAmeritradeForSwift
                 let jsonData = someJson.data(using: .utf8)!
                 let decoder = JSONDecoder()
                 //https://forums.swift.org/t/encoding-decoding-a-swift-dictionary-to-from-json/39989
-                let someDictionary = try! decoder.decode([String:Account].self, from: jsonData)
-                
-                let (key,value) = someDictionary.first!
-                someAccount = value
+                do
+                {
+                    let someDictionary = try decoder.decode([String:Account].self, from: jsonData)
+                    
+                    let (key,value) = someDictionary.first!
+                    someAccount = value
+                }
+                catch
+                {
+                    
+                }
             }
             else
             {
