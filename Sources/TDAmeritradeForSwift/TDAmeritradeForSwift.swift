@@ -754,14 +754,17 @@ public class TDAmeritradeForSwift
         let someAccount = TDAmeritradeForSwift.getAccount(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse)
         
         var maybePosition:Optional<Position> = nil
-        for somePosition in someAccount!.positions
+        
+        if someAccount != nil
         {
-            if somePosition.instrument.symbol.compare(chosenSymbol) == .orderedSame
+            for somePosition in someAccount!.positions
             {
-                maybePosition = somePosition
+                if somePosition.instrument.symbol.compare(chosenSymbol) == .orderedSame
+                {
+                    maybePosition = somePosition
+                }
             }
         }
-        
         return maybePosition
         
     }
