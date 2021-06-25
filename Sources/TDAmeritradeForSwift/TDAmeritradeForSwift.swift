@@ -796,6 +796,11 @@ public class TDAmeritradeForSwift
                 sleep(1)
             }
             
+            //the reasoning for this line is, right before the cancel is attempted
+            //the order can fill, within that one second gap above
+            //I have observed it happening once so far in ~100 trades near low volume times of the day
+            someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+            
             if didFill
             {
                 
@@ -805,10 +810,9 @@ public class TDAmeritradeForSwift
                 if someOrder!.cancelable! == true
                 {
                     someOrder!.cancel(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
-                    //someOrder!.refresh(tdAmeritradeAccountNumber: accountNumber, accessTokenToUse: accessToken2!)
                     
                     var tries:Int = 0
-                    while someOrder!.status!.compare("CANCELED") != .orderedSame
+                    while someOrder!.status!.compare("CANCELED") != .orderedSame && someOrder!.status!.compare("FILLED") != .orderedSame
                     {
                         someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
                         sleep(1)
@@ -821,7 +825,10 @@ public class TDAmeritradeForSwift
                 }
                 
             }
+            
+            
         }
+        
         return someOrder
         
     }
