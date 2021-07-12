@@ -229,7 +229,7 @@ public struct Order:Decodable,Encodable,Hashable
     public let duration:String
     public let orderStrategyType:String//dont know what this is
     public let orderLegCollection:[OrderLeg]
-    public let price:Decimal
+    public let price:Optional<Decimal>
     
     public var filledQuantity:Optional<Int>
     public var remainingQuantity:Optional<Int>
@@ -769,7 +769,7 @@ public class TDAmeritradeForSwift
         
     }
     
-    public class func doOrderFillOrKillImitation(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal,timeLimitSecondsForFill:UInt,orderType:orderTypeEnum)->Optional<Order>
+    public class func doOrderFillOrKillImitation(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Optional<Decimal>,timeLimitSecondsForFill:UInt,orderType:orderTypeEnum)->Optional<Order>
     {
         
         var someOrder:Optional<Order> = doOrder(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,quantity:quantity,symbol:symbol,limitPrice:limitPrice,orderType:orderType)
@@ -835,7 +835,7 @@ public class TDAmeritradeForSwift
     
     
     
-    public class func doOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal,orderType:orderTypeEnum)->Optional<Order>
+    public class func doOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Optional<Decimal>,orderType:orderTypeEnum)->Optional<Order>
     {
         let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
         switch orderType
@@ -854,12 +854,12 @@ public class TDAmeritradeForSwift
         
         if beforeOrders != nil && afterOrders != nil
         {
-        let boSet = Set<Order>(beforeOrders!)
-        let aoSet = Set<Order>(afterOrders!)
-        let diff = aoSet.subtracting(boSet)
-        
-        let newOrder = diff.first
-        return newOrder
+            let boSet = Set<Order>(beforeOrders!)
+            let aoSet = Set<Order>(afterOrders!)
+            let diff = aoSet.subtracting(boSet)
+            
+            let newOrder = diff.first
+            return newOrder
         }
         else
         {
@@ -1022,13 +1022,20 @@ public class TDAmeritradeForSwift
 
     
     
-    public class func placeGenericOrder(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Decimal,instruction:String)
+    public class func placeGenericOrder(accountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Optional<Decimal>,instruction:String)
     {
         
         let anInstrument = Instrument(assetType: "EQUITY", symbol: symbol)
         let anOrderLeg = OrderLeg(instruction: instruction, quantity: quantity, instrument: anInstrument, quantityType: "SHARES")
         let orderLegs = [anOrderLeg]
-        let newOrder = Order(orderType: "LIMIT", session: "NORMAL", duration: "DAY", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice,filledQuantity: nil,remainingQuantity: nil,orderId: nil,status:nil,cancelable: nil)
+        
+        var orderType:String = "LIMIT"
+        if limitPrice == nil
+        {
+            orderType = "MARKET"
+        }
+        
+        let newOrder = Order(orderType: orderType, session: "NORMAL", duration: "DAY", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice,filledQuantity: nil,remainingQuantity: nil,orderId: nil,status:nil,cancelable: nil)
         
         //https://www.advancedswift.com/http-requests-in-swift/
         let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(accountNumber)/orders")!
@@ -1059,14 +1066,13 @@ public class TDAmeritradeForSwift
                 print(error!.localizedDescription)
                 hasError = error!
             }
-            else if let data = data {
-                
-                
-            }
-            else
-            {
+            //else if let data = data
+            //{
+            //}
+            //else
+            //{
                 // Handle unexpected error
-            }
+            //}
         }
         task.resume()
         
