@@ -37,9 +37,6 @@ extension TDAmeritradeForSwift
                 sleep(1)
             }
             
-            //the reasoning for this line is, right before the cancel is attempted
-            //the order can fill, within that one second gap above
-            //I have observed it happening once so far in ~100 trades near low volume times of the day
             someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
             
             if didFill
@@ -57,16 +54,17 @@ extension TDAmeritradeForSwift
                     {
                         someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
                         sleep(1)
+                        print("refreshing order status \(tries)")//remove before merge into main branch
                         tries = tries + 1
-                        if tries > 5
+                        if tries > 100
                         {
+                            print("refreshing order status reached try limit \(tries)")//remove before merge into main branch
                             break
                         }
                     }
                 }
                 
             }
-            
             
         }
         
