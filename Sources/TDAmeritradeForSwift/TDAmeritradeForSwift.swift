@@ -290,7 +290,7 @@ public struct Order:Decodable,Encodable,Hashable
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
+            //sleep(1)
         }
         
         self = refreshedOrder!
@@ -331,7 +331,7 @@ public struct Order:Decodable,Encodable,Hashable
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
+            //sleep(1)
         }
         
     }
@@ -675,7 +675,7 @@ public class TDAmeritradeForSwift
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
+            //sleep(1)
         }
          
         return someQuote
@@ -865,7 +865,7 @@ public class TDAmeritradeForSwift
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
+            //sleep(1)
         }
         
         var orderArray2:Optional<[Order]> = nil
@@ -949,7 +949,7 @@ public class TDAmeritradeForSwift
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
+            //sleep(1)
         }
 
         return orderArray
@@ -1015,7 +1015,7 @@ public class TDAmeritradeForSwift
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
+            //sleep(1)
         }
     }
     

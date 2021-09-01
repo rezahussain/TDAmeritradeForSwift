@@ -54,11 +54,10 @@ extension TDAmeritradeForSwift
                     {
                         someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
                         sleep(1)
-                        print("refreshing order status \(tries)")//remove before merge into main branch
+                        
                         tries = tries + 1
-                        if tries > 100
+                        if tries > 5
                         {
-                            print("refreshing order status reached try limit \(tries)")//remove before merge into main branch
                             break
                         }
                     }
