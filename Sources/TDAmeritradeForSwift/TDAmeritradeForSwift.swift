@@ -292,6 +292,7 @@ public struct Order:Decodable,Encodable,Hashable
         }
         task.resume()
         semaphore.wait()
+        semaphore.signal()
         
         while task.state != .completed && hasError == nil
         {
@@ -337,6 +338,7 @@ public struct Order:Decodable,Encodable,Hashable
         }
         task.resume()
         semaphore.wait()
+        semaphore.signal()
         
         while task.state != .completed && hasError == nil
         {
@@ -685,6 +687,7 @@ public class TDAmeritradeForSwift
         }
         task.resume()
         semaphore.wait()
+        semaphore.signal()
         
         while task.state != .completed && hasError == nil
         {
@@ -880,6 +883,7 @@ public class TDAmeritradeForSwift
         }
         task.resume()
         semaphore.wait()
+        semaphore.signal()
         
         while task.state != .completed && hasError == nil
         {
@@ -1037,6 +1041,8 @@ public class TDAmeritradeForSwift
         
         task.resume()
         semaphore.wait()
+        semaphore.signal()
+        //using the semaphore approach reduces total execution time to 0.143
         
         
         while task.state != .completed && hasError == nil
