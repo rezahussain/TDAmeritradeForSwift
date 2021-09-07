@@ -51,7 +51,7 @@ extension TDAmeritradeForSwift
                     someOrder!.cancel(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
                     
                     var tries:Int = 0
-                    while (someOrder!.status!.compare("CANCELED") != .orderedSame) && (someOrder!.status!.compare("FILLED") != .orderedSame) && (someOrder!.status!.compare("REJECTED") == .orderedSame)
+                    while (someOrder!.status!.compare("CANCELED") != .orderedSame) && (someOrder!.status!.compare("FILLED") != .orderedSame) && (someOrder!.status!.compare("REJECTED") != .orderedSame)
                     {
                         someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
                         sleep(1)
