@@ -32,7 +32,8 @@ extension TDAmeritradeForSwift
                 if someOrder!.status!.compare("REJECTED") == .orderedSame
                 {
                     didFill = false
-                    break
+                    return nil
+                    //break
                 }
                 sleep(1)
             }
@@ -50,7 +51,7 @@ extension TDAmeritradeForSwift
                     someOrder!.cancel(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
                     
                     var tries:Int = 0
-                    while someOrder!.status!.compare("CANCELED") != .orderedSame && someOrder!.status!.compare("FILLED") != .orderedSame
+                    while (someOrder!.status!.compare("CANCELED") != .orderedSame) && (someOrder!.status!.compare("FILLED") != .orderedSame) && (someOrder!.status!.compare("REJECTED") == .orderedSame)
                     {
                         someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
                         sleep(1)

@@ -296,7 +296,7 @@ public struct Order:Decodable,Encodable,Hashable
         
         while task.state != .completed && hasError == nil
         {
-            //sleep(1)
+            
         }
         
         self = refreshedOrder!
@@ -342,7 +342,7 @@ public struct Order:Decodable,Encodable,Hashable
         
         while task.state != .completed && hasError == nil
         {
-            //sleep(1)
+            
         }
         
     }
@@ -475,6 +475,9 @@ public class TDAmeritradeForSwift
         var refreshToken:Optional<String> = nil
         var accessToken:Optional<String> = nil
         
+        let semaphore = DispatchSemaphore(value: 1)
+        semaphore.wait()
+        
         //https://developer.apple.com/documentation/foundation/urlsessiondatatask
         let session = URLSession.shared
         let task = session.dataTask(with: request) { (data, response, error) in
@@ -511,12 +514,15 @@ public class TDAmeritradeForSwift
             {
                 // Handle unexpected error
             }
+            semaphore.signal()
         }
         task.resume()
+        semaphore.wait()
+        semaphore.signal()
         
         while (task.state != .completed && hasError == nil)
         {
-            sleep(1)
+            
         }
         
         return (refreshToken,accessToken)
@@ -559,6 +565,9 @@ public class TDAmeritradeForSwift
         
         var accessToken:Optional<String> = nil
         
+        let semaphore = DispatchSemaphore(value: 1)
+        semaphore.wait()
+        
         //https://developer.apple.com/documentation/foundation/urlsessiondatatask
         let session = URLSession.shared
         let task = session.dataTask(with: request) { (data, response, error) in
@@ -593,12 +602,14 @@ public class TDAmeritradeForSwift
             {
                 // Handle unexpected error
             }
+            semaphore.signal()
         }
         task.resume()
+        semaphore.wait()
+        semaphore.signal()
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
         }
         
         return accessToken
@@ -691,7 +702,7 @@ public class TDAmeritradeForSwift
         
         while task.state != .completed && hasError == nil
         {
-            //sleep(1)
+            
         }
          
         return someQuote
@@ -713,6 +724,9 @@ public class TDAmeritradeForSwift
         
         request.setValue("Bearer \(accessTokenToUse)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
+        
+        let semaphore = DispatchSemaphore(value: 1)
+        semaphore.wait()
         
         var hasError:Optional<Error> = nil
         
@@ -752,12 +766,15 @@ public class TDAmeritradeForSwift
             {
                 // Handle unexpected error
             }
+            semaphore.signal()
         }
         task.resume()
+        semaphore.wait()
+        semaphore.signal()
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
+            
         }
 
         return someAccount
@@ -887,7 +904,7 @@ public class TDAmeritradeForSwift
         
         while task.state != .completed && hasError == nil
         {
-            //sleep(1)
+            
         }
         
         var orderArray2:Optional<[Order]> = nil
@@ -931,6 +948,8 @@ public class TDAmeritradeForSwift
         
         var hasError:Optional<Error> = nil
         
+        let semaphore = DispatchSemaphore(value: 1)
+        semaphore.wait()
         //https://developer.apple.com/documentation/foundation/urlsessiondatatask
         let session = URLSession.shared
         let task = session.dataTask(with: request) { (data, response, error) in
@@ -966,12 +985,14 @@ public class TDAmeritradeForSwift
             {
                 // Handle unexpected error
             }
+            semaphore.signal()
         }
         task.resume()
+        semaphore.wait()
+        semaphore.signal()
         
         while task.state != .completed && hasError == nil
         {
-            sleep(1)
         }
 
         return orderArray
@@ -1040,6 +1061,7 @@ public class TDAmeritradeForSwift
         
         
         task.resume()
+        
         semaphore.wait()
         semaphore.signal()
         //using the semaphore approach reduces total execution time to 0.143
@@ -1047,7 +1069,7 @@ public class TDAmeritradeForSwift
         
         while task.state != .completed && hasError == nil
         {
-            //sleep(1)
+            
         }
         
     }
