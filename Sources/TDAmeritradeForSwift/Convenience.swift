@@ -63,6 +63,16 @@ extension TDAmeritradeForSwift
                         }
                     }
                 }
+                else
+                {
+                    print("order not cancellable")
+                    while ((someOrder!.status!.compare("FILLED") != .orderedSame) && (someOrder!.status!.compare("REJECTED") != .orderedSame))
+                    {
+                        someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                        print("waiting for non cancellable order to fill or get rejected")
+                        sleep(1)
+                    }
+                }
                 
             }
             
