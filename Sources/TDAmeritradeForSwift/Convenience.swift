@@ -38,7 +38,7 @@ extension TDAmeritradeForSwift
                 sleep(1)
             }
             
-            someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+            
             
             if didFill
             {
@@ -46,6 +46,8 @@ extension TDAmeritradeForSwift
             }
             else
             {
+                someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                
                 if someOrder!.cancelable! == true
                 {
                     someOrder!.cancel(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
