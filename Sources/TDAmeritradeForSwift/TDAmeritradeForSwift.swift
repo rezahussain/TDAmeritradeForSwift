@@ -299,7 +299,20 @@ public struct Order:Decodable,Encodable,Hashable
             
         }
         
-        self = refreshedOrder!
+        if refreshedOrder != nil
+        {
+            //self = refreshedOrder!
+            
+            self.filledQuantity = refreshedOrder!.filledQuantity
+            self.remainingQuantity = refreshedOrder!.remainingQuantity
+            self.orderId = refreshedOrder!.orderId
+            self.status = refreshedOrder!.status
+            self.cancelable = refreshedOrder!.cancelable
+
+        }
+        
+        
+        
     }
     
     public mutating func cancel(tdAmeritradeAccountNumber:Int,accessTokenToUse:String)
