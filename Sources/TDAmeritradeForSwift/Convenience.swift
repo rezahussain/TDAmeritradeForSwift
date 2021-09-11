@@ -78,6 +78,38 @@ extension TDAmeritradeForSwift
                 
             }
             
+            //------------------------------------------
+            
+            //tdameritrade api reports FILLED once an order's filledQuantity goes above 0
+            //so we have to refresh because that number can keep going up in the mean time
+            //tdameritrade api also changes the filledquantity even when u cancel, it can have a partial fill
+            //so in that case you still want to have a couple of refreshes to make sure that the filledQuantity stopped moving
+            //after we cancelled
+            //this is what I use, its not perfect but does what I need right now
+            
+            if (someOrder!.status!.compare("CANCELED") == .orderedSame) || (someOrder!.status!.compare("FILLED") == .orderedSame)
+            {
+                var tries:Int = 0
+                while tries < 5
+                {
+                    if (someOrder!.filledQuantity != nil)
+                    {
+                        if someOrder!.filledQuantity! == quantity
+                        {
+                            break
+                        }
+                        else
+                        {
+                            someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
+                            tries = tries + 1
+                            sleep(1)
+                        }
+                    }
+                }
+            }
+            
+            //------------------------------------------
+            
         }
         
         return someOrder
