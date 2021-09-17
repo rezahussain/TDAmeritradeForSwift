@@ -821,17 +821,20 @@ public class TDAmeritradeForSwift
     public class func doOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Optional<Decimal>,orderType:orderTypeEnum)->Optional<Order>
     {
         let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        
+        var orderInstruction:Optional<String> = nil
         switch orderType
         {
             case .buy:
-                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY")
+                orderInstruction = "BUY"
             case .sell:
-                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL")
+                orderInstruction = "SELL"
             case .sellShort:
-                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "SELL_SHORT")
+                orderInstruction = "SELL_SHORT"
             case .buyToCover:
-                placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: "BUY_TO_COVER")
+                orderInstruction = "BUY_TO_COVER"
         }
+        placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: orderInstruction!)
         
         let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
         
@@ -843,14 +846,30 @@ public class TDAmeritradeForSwift
             
             if diff.count > 1
             {
-                print("problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
+                print("A) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
             }
             
             let newOrder = diff.first
             
             if newOrder!.orderLegCollection.first!.instrument.symbol.compare(symbol) != .orderedSame
             {
-                print("problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
+                print("B) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
+            }
+            
+            var candidates:[Order] = []
+            for oc in diff
+            {
+                if (oc.orderLegCollection.first!.instrument.symbol.compare(symbol) == .orderedSame) &&
+                   (oc.orderLegCollection.first!.quantity == quantity) &&
+                   (oc.orderLegCollection.first!.instruction.compare(orderInstruction!) == .orderedSame)
+                {
+                    candidates.append(oc)
+                }
+            }
+            
+            if candidates.count == 0 || candidates.count > 1
+            {
+                print("C) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff) \(candidates)")
             }
             
             return newOrder
