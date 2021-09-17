@@ -847,6 +847,12 @@ public class TDAmeritradeForSwift
             }
             
             let newOrder = diff.first
+            
+            if newOrder!.orderLegCollection.first!.instrument.symbol.compare(symbol) != .orderedSame
+            {
+                print("problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
+            }
+            
             return newOrder
         }
         else
