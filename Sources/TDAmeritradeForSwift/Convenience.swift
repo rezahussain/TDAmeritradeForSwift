@@ -108,6 +108,16 @@ extension TDAmeritradeForSwift
                 }
             }
             
+            if someOrder!.status!.compare("REJECTED") == .orderedSame
+            {
+                return nil
+            }
+            
+            if someOrder!.status!.compare("CANCELED") == .orderedSame
+            {
+                return nil
+            }
+            
             //------------------------------------------
             
         }
