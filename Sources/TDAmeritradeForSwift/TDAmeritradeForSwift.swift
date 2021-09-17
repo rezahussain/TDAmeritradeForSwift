@@ -844,6 +844,7 @@ public class TDAmeritradeForSwift
             let aoSet = Set<Order>(afterOrders!)
             let diff = aoSet.subtracting(boSet)
             
+            /*
             if diff.count > 1
             {
                 print("A) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet)\n ao=\(aoSet)\n diff=\(diff)\n\n")
@@ -854,7 +855,7 @@ public class TDAmeritradeForSwift
             if newOrder!.orderLegCollection.first!.instrument.symbol.compare(symbol) != .orderedSame
             {
                 print("B) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet)\n ao=\(aoSet)\n diff=\(diff)\n\n")
-            }
+            }*/
             
             var candidates:[Order] = []
             for oc in diff
@@ -863,7 +864,21 @@ public class TDAmeritradeForSwift
                    (oc.orderLegCollection.first!.quantity == quantity) &&
                    (oc.orderLegCollection.first!.instruction.compare(orderInstruction!) == .orderedSame)
                 {
-                    candidates.append(oc)
+                    if oc.status != nil
+                    {
+                        if (oc.status!.compare("CANCELED") == .orderedSame) || (oc.status!.compare("REJECTED") == .orderedSame)
+                        {
+                            
+                        }
+                        else
+                        {
+                            candidates.append(oc)
+                        }
+                    }
+                    else
+                    {
+                        candidates.append(oc)
+                    }
                 }
             }
             
@@ -872,7 +887,7 @@ public class TDAmeritradeForSwift
                 print("C) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet)\n ao=\(aoSet)\n diff=\(diff)\n\n candid=\(candidates)")
             }
             
-            return newOrder
+            return candidates.first
         }
         else
         {
