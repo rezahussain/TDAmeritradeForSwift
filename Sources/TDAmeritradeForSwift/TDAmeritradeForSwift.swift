@@ -841,6 +841,11 @@ public class TDAmeritradeForSwift
             let aoSet = Set<Order>(afterOrders!)
             let diff = aoSet.subtracting(boSet)
             
+            if diff.count > 1
+            {
+                print("problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
+            }
+            
             let newOrder = diff.first
             return newOrder
         }
