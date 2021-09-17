@@ -864,21 +864,10 @@ public class TDAmeritradeForSwift
                    (oc.orderLegCollection.first!.quantity == quantity) &&
                    (oc.orderLegCollection.first!.instruction.compare(orderInstruction!) == .orderedSame)
                 {
-                    if oc.status != nil
-                    {
-                        if (oc.status!.compare("CANCELED") == .orderedSame) || (oc.status!.compare("REJECTED") == .orderedSame)
-                        {
-                            
-                        }
-                        else
-                        {
-                            candidates.append(oc)
-                        }
-                    }
-                    else
-                    {
+                   
+                    
                         candidates.append(oc)
-                    }
+                    
                 }
             }
             
