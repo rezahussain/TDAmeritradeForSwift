@@ -846,14 +846,14 @@ public class TDAmeritradeForSwift
             
             if diff.count > 1
             {
-                print("A) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
+                print("A) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet) ao=\(aoSet) diff=\(diff)")
             }
             
             let newOrder = diff.first
             
             if newOrder!.orderLegCollection.first!.instrument.symbol.compare(symbol) != .orderedSame
             {
-                print("B) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff)")
+                print("B) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet) ao=\(aoSet) diff=\(diff)")
             }
             
             var candidates:[Order] = []
@@ -869,7 +869,7 @@ public class TDAmeritradeForSwift
             
             if candidates.count == 0 || candidates.count > 1
             {
-                print("C) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe \(boSet) \(aoSet) \(diff) \(candidates)")
+                print("C) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet) ao=\(aoSet) diff=\(diff) candid=\(candidates)")
             }
             
             return newOrder
