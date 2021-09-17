@@ -68,11 +68,17 @@ extension TDAmeritradeForSwift
                 else
                 {
                     print("order not cancellable")
+                    var tries:Int = 0
                     while ((someOrder!.status!.compare("FILLED") != .orderedSame) && (someOrder!.status!.compare("REJECTED") != .orderedSame))
                     {
                         someOrder!.refresh(tdAmeritradeAccountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse)
-                        print("waiting for non cancellable order to fill or get rejected")
+                        print("waiting for non cancellable order to fill or get rejected  \(someOrder!.status!) \(someOrder!) \(Date())")
                         sleep(1)
+                        tries = tries + 1
+                        if tries > 10
+                        {
+                            break
+                        }
                     }
                 }
                 
