@@ -855,8 +855,44 @@ public class TDAmeritradeForSwift
             if newOrder!.orderLegCollection.first!.instrument.symbol.compare(symbol) != .orderedSame
             {
                 print("B) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet)\n ao=\(aoSet)\n diff=\(diff)\n\n")
-            }*/
+            }
+           */
             
+            var beforeIdsSet:Set<Int> = Set()
+            for order in boSet
+            {
+                beforeIdsSet.insert(order.orderId!)
+            }
+            
+            var afterIdsSet:Set<Int> = Set()
+            for order in aoSet
+            {
+                afterIdsSet.insert(order.orderId!)
+            }
+            
+            let diffIds = afterIdsSet.subtracting(beforeIdsSet)
+            
+            var candidates:[Order] = []
+            for id in diffIds
+            {
+                for oc in aoSet
+                {
+                    if id == oc.orderId!
+                    {
+                        //should not need this, but doing it for extra safety
+                        if (oc.orderLegCollection.first!.instrument.symbol.compare(symbol) == .orderedSame) &&
+                           (oc.orderLegCollection.first!.instruction.compare(orderInstruction!) == .orderedSame)
+                        {
+                            candidates.append(oc)
+                        }
+                    }
+                    
+                }
+                
+            }
+            
+            
+            /*
             var candidates:[Order] = []
             for oc in diff
             {
@@ -870,10 +906,11 @@ public class TDAmeritradeForSwift
                     
                 }
             }
+            */
             
             if candidates.count == 0 || candidates.count > 1
             {
-                print("C) problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet)\n ao=\(aoSet)\n diff=\(diff)\n\n candid=\(candidates)")
+                print("TDAmeritradeForSwift Problem: problem finding new order, did you call this from multiple threads or are also trading from the tdameritrade gui? doOrder is not thread safe bo=\(boSet)\n ao=\(aoSet)\n diff=\(diff)\n\n candid=\(candidates)")
             }
             
             return candidates.first
