@@ -1094,12 +1094,14 @@ public class TDAmeritradeForSwift
         let orderLegs = [anOrderLeg]
         
         var orderType:String = "LIMIT"
+        var sessionType:String = "SEAMLESS"
         if limitPrice == nil
         {
             orderType = "MARKET"
+            sessionType = "NORMAL"
         }
         
-        let newOrder = Order(orderType: orderType, session: "NORMAL", duration: "DAY", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice,filledQuantity: nil,remainingQuantity: nil,orderId: nil,status:nil,cancelable: nil)
+        let newOrder = Order(orderType: orderType, session: sessionType, duration: "DAY", orderStrategyType: "SINGLE", orderLegCollection: orderLegs,price:limitPrice,filledQuantity: nil,remainingQuantity: nil,orderId: nil,status:nil,cancelable: nil)
         
         //https://www.advancedswift.com/http-requests-in-swift/
         let url = URL(string:"https://api.tdameritrade.com/v1/accounts/\(accountNumber)/orders")!
