@@ -230,6 +230,7 @@ public struct Order:Decodable,Encodable,Hashable
     public let orderStrategyType:String//dont know what this is
     public let orderLegCollection:[OrderLeg]
     public let price:Optional<Decimal>
+    public let taxLotMethod:String =  "LOW_COST"
     
     public var filledQuantity:Optional<Int>
     public var remainingQuantity:Optional<Int>
