@@ -520,7 +520,7 @@ public class TDAmeritradeForSwift
 
         app.http.server.configuration.tlsConfiguration  = .makeServerConfiguration(certificateChain:[x],privateKey:x1)
 
-        defer { app.shutdown() }
+        
         try configure(app)
 
         try app.server.start()
@@ -552,6 +552,8 @@ public class TDAmeritradeForSwift
             print("waiting for initial auth token \(Date())")
             sleep(1)
         }
+        
+        app.shutdown()
         
         //launchContexts[0].terminate()
         //I dont like to terminate because it gives the below error, its not an error :\
