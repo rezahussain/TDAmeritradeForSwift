@@ -6,9 +6,14 @@
 //
 
 import Foundation
-import PerfectHTTP
-import PerfectHTTPServer
 import AppKit
+
+import Foundation
+import Vapor
+import NIOSSL
+
+//import PerfectHTTP
+//import PerfectHTTPServer
 
 
 extension Date
@@ -367,7 +372,8 @@ public struct Order:Decodable,Encodable,Hashable
 public class TDAmeritradeForSwift
 {
     
-    public class func obtainInitialAuthorizationCodeUsingLocalhostServer(tempLocalhostServerPort:UInt16,tdameritradeRedirectURI:String,tdameritradeConsumerKey:String,sslCertPath:String,sslKeyPath:String) throws -> (Optional<String>,String)
+    /*
+    public class func obtainInitialAuthorizationCodeUsingLocalhostServerDeprecated(tempLocalhostServerPort:UInt16,tdameritradeRedirectURI:String,tdameritradeConsumerKey:String,sslCertPath:String,sslKeyPath:String) throws -> (Optional<String>,String)
     {
         //this is the first part, of
         //https://developer.tdameritrade.com/content/simple-auth-local-apps
@@ -451,7 +457,122 @@ public class TDAmeritradeForSwift
         
         return (authCode,clientId)
     }
+     */
+    
+    public class func obtainInitialAuthorizationCodeUsingLocalhostServer(tempLocalhostServerPort:UInt16,tdameritradeRedirectURI:String,tdameritradeConsumerKey:String,sslCertPath:String,sslKeyPath:String) throws -> (Optional<String>,String)
+    {
+        //this is the first part, of
+        //https://developer.tdameritrade.com/content/simple-auth-local-apps
+        //it gets the initial code
+        
+        //----------------
+        
+        
+        // configures your application
+        func configure(_ app: Application) throws {
+            // uncomment to serve files from /Public folder
+            // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
+            // register routes
+            try routes(app)
+        }
+
+        var authCode:Optional<String> = nil
+
+        func routes(_ app: Application) throws
+        {
+            app.get("") { req async -> String in
+                //req.parameters
+                //https://stackoverflow.com/questions/51954148/how-to-access-query-parameters-in-vapor-3
+                authCode = try? req.query.get(String.self, at: "code")
+                //print("\(req) \(req.parameters) \(req.parameters.get("code"))")
+                return "message received"
+            }
+        }
+        
+        
+        
+        var env = try Environment.detect()
+        try LoggingSystem.bootstrap(from: &env)
+        let app = Application(env)
+        
+        
+        
+        /*
+         https://stackoverflow.com/questions/63195304/difference-between-pem-crt-key-files
+         https://stackoverflow.com/questions/10175812/how-to-generate-a-self-signed-ssl-certificate-using-openssl
+         openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -subj /CN=localhost -nodes
+         
+         
+         this works
+         openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -subj /CN=localhost -nodes
+         then just add the key to the keychain, do this by drag and dropping into the certificates tab under the login keychain
+         in safari you will have to navigate the warning page once
+         u can do curl -k url to also ignore self signed
+         
+         */
+
+        let y: NIOSSLCertificate = try! NIOSSLCertificate.init(file: sslCertPath, format: NIOSSLSerializationFormats.pem)
+        let x: NIOSSLCertificateSource = NIOSSLCertificateSource.certificate(y)
+
+        let y1: NIOSSLPrivateKey = try! NIOSSLPrivateKey.init(file: sslKeyPath,format:NIOSSLSerializationFormats.pem)
+        let x1: NIOSSLPrivateKeySource = NIOSSLPrivateKeySource.privateKey(y1)
+
+        app.http.server.configuration.tlsConfiguration  = .makeServerConfiguration(certificateChain:[x],privateKey:x1)
+
+        defer { app.shutdown() }
+        try configure(app)
+
+        try app.server.start()
+        //try app.run()
+
+        
+        //https://stackoverflow.com/questions/24551816/swift-encode-url
+        let tdameritradeRedirectURIURLEncoded = tdameritradeRedirectURI.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        let tdameritradeConsumerKeyURLEncoded = tdameritradeConsumerKey.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        let urlEncodedRedirectURI = tdameritradeRedirectURIURLEncoded!
+        let urlEncodedConsumerKey = tdameritradeConsumerKeyURLEncoded!
+        let basicUrl = "https://auth.tdameritrade.com/auth?response_type=code&redirect_uri=\(urlEncodedRedirectURI)&client_id=\(urlEncodedConsumerKey)%40AMER.OAUTHAP"
+
+        if let _ = URL(string: basicUrl)
+        {
+            //NSWorkspace.shared.open(url)
+            let task = Process()
+            task.launchPath = "/usr/bin/open"
+            task.arguments = [basicUrl]
+            task.launch()
+        }
+        
+        
+        
+        //----------------
+        
+        while authCode == nil
+        {
+            print("waiting for initial auth token \(Date())")
+            sleep(1)
+        }
+        
+        //launchContexts[0].terminate()
+        //I dont like to terminate because it gives the below error, its not an error :\
+        //Unexpected networking error: 53 'Software caused connection abort
+        //the http server terminates when it goes out of scope anyways
+        let clientId = "\(tdameritradeConsumerKey)@AMER.OAUTHAP"
+        
+        //the values need to be taken and used with
+        //https://developer.tdameritrade.com/authentication/apis/post/token-0
+        //grant_type: authorization_code
+        //access_type: offline
+        //client_id: clientId above
+        //code: authCode
+        //redirect_uri: tdameritradeRedirectURI
+        //this will give you an access token and a refresh token
+        //the access token is used to make requests, and the refresh token is used to get
+        //new access tokens, because they expire after 1800 seconds(30 min)
+        //refresh tokens expire in 90 days
+        
+        return (authCode,clientId)
+    }
 
 
 

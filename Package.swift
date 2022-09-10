@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "TDAmeritradeForSwift",
     platforms: [
-          .macOS(.v10_15)
+        .macOS(.v12)
       ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/rezahussain/Perfect-HTTPServer", branch: "master")
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0")
         
     ],
     targets: [
@@ -25,7 +25,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "TDAmeritradeForSwift",
-            dependencies: [.product(name: "PerfectHTTPServer", package: "Perfect-HTTPServer")]),
+            dependencies: [.product(name: "Vapor", package: "vapor")]),
         .testTarget(
             name: "TDAmeritradeForSwiftTests",
             dependencies: ["TDAmeritradeForSwift"]),
