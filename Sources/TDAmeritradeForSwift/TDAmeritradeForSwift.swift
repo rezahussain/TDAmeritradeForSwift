@@ -522,8 +522,11 @@ public class TDAmeritradeForSwift
 
         
         try configure(app)
+        
+        app.http.server.configuration.port = Int(tempLocalhostServerPort)
 
         try app.server.start()
+        
         //try app.run()
 
         
@@ -553,7 +556,8 @@ public class TDAmeritradeForSwift
             sleep(1)
         }
         
-        app.shutdown()
+        app.server.shutdown()
+        try app.server.onShutdown.wait()
         
         //launchContexts[0].terminate()
         //I dont like to terminate because it gives the below error, its not an error :\
