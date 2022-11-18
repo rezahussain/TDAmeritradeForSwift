@@ -119,10 +119,13 @@ extension TDAmeritradeForSwift
                 return nil
             }
             
+            /*
+            cuz it can be cancelled with a partial fill ugh, so you cant do this
+
             if someOrder!.status!.compare("CANCELED") == .orderedSame
             {
                 return nil
-            }
+            }*/
             
             //------------------------------------------
             
