@@ -979,6 +979,7 @@ public class TDAmeritradeForSwift
                 {
                     break
                 }
+                tries = tries + 1
             }
         }
         
