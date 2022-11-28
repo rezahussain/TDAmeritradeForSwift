@@ -968,6 +968,22 @@ public class TDAmeritradeForSwift
         
         if beforeOrders != nil && afterOrders != nil
         {
+            var tries:Int = 0
+            while beforeOrders!.count == afterOrders!.count
+            {
+                let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+                
+                sleep(1)
+                
+                if tries > 10
+                {
+                    break
+                }
+            }
+        }
+        
+        if beforeOrders != nil && afterOrders != nil
+        {
             let boSet = Set<Order>(beforeOrders!)
             let aoSet = Set<Order>(afterOrders!)
             let diff = aoSet.subtracting(boSet)
