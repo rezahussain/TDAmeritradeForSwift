@@ -967,7 +967,7 @@ public class TDAmeritradeForSwift
                 orderInstruction = "BUY_TO_COVER"
         }
         placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: orderInstruction!)
-        
+        sleep(3)
         
         let afterDate = Date()
         
