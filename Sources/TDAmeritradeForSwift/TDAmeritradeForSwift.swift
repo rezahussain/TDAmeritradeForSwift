@@ -949,9 +949,9 @@ public class TDAmeritradeForSwift
     public class func doOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Optional<Decimal>,orderType:orderTypeEnum)->Optional<Order>
     {
         let beforeDate = Date()
-        sleep(2)
+        
         var beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:beforeDate)
-        sleep(2)
+        
         
         
         var orderInstruction:Optional<String> = nil
@@ -967,12 +967,12 @@ public class TDAmeritradeForSwift
                 orderInstruction = "BUY_TO_COVER"
         }
         placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: orderInstruction!)
-        sleep(2)
+        
         
         let afterDate = Date()
         
         let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:afterDate)
-        sleep(2)
+        
         
         if beforeOrders != nil && afterOrders != nil
         {
