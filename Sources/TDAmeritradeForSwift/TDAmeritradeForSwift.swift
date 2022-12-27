@@ -948,7 +948,11 @@ public class TDAmeritradeForSwift
     
     public class func doOrder(tdAmeritradeAccountNumber:Int,accessTokenToUse:String,quantity:Int,symbol:String,limitPrice:Optional<Decimal>,orderType:orderTypeEnum)->Optional<Order>
     {
-        let beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        let beforeDate = Date()
+        sleep(2)
+        var beforeOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:beforeDate)
+        sleep(2)
+        
         
         var orderInstruction:Optional<String> = nil
         switch orderType
@@ -963,19 +967,23 @@ public class TDAmeritradeForSwift
                 orderInstruction = "BUY_TO_COVER"
         }
         placeGenericOrder(accountNumber: tdAmeritradeAccountNumber, accessTokenToUse: accessTokenToUse, quantity: quantity, symbol: symbol, limitPrice: limitPrice, instruction: orderInstruction!)
+        sleep(2)
         
-        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+        let afterDate = Date()
+        
+        let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:afterDate)
+        sleep(2)
         
         if beforeOrders != nil && afterOrders != nil
         {
             var tries:Int = 0
             while beforeOrders!.count == afterOrders!.count
             {
-                let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:Date())
+                let afterOrders = getOrdersFromDate(tdAmeritradeAccountNumber:tdAmeritradeAccountNumber,accessTokenToUse:accessTokenToUse,fromDate:afterDate)
                 
                 sleep(1)
                 
-                if tries > 10
+                if tries > 30
                 {
                     break
                 }
